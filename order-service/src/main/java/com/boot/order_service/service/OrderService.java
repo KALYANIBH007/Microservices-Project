@@ -29,7 +29,7 @@ public class OrderService {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
-    public void createOrder(OrderRequest orderRequest){
+    public String createOrder(OrderRequest orderRequest){
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderItems> orderItems1 = orderRequest.getOrderItemsRequest()
@@ -58,10 +58,13 @@ public class OrderService {
         boolean productsInStock = Arrays.stream(inventoryResponseArray)
                 .allMatch(InventoryResponse :: isInStock);
 
-        if(productsInStock)
+        if(productsInStock) {
             orderRepository.save(order);
-        else
+            return "Order Placed Successfully";
+        }
+        else {
             throw new IllegalArgumentException("Product is not present in the stock, Please try again later");
+        }
     }
 
     private OrderItems OrderItemReqToOrderItem(OrderItemsRequest orderItemsRequest){
