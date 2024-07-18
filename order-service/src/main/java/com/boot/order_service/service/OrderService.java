@@ -6,9 +6,7 @@ import com.boot.order_service.dto.OrderRequest;
 import com.boot.order_service.model.Order;
 import com.boot.order_service.model.OrderItems;
 import com.boot.order_service.repository.OrderRepository;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -16,8 +14,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-import static java.util.stream.Collectors.toList;
 
 @Service
 @Transactional
@@ -29,7 +25,8 @@ public class OrderService {
     @Autowired
     private WebClient.Builder webClientBuilder;
 
-    public String createOrder(OrderRequest orderRequest){
+
+    public void createOrder(OrderRequest orderRequest) {
         Order order = new Order();
         order.setOrderNumber(UUID.randomUUID().toString());
         List<OrderItems> orderItems1 = orderRequest.getOrderItemsRequest()
@@ -42,8 +39,8 @@ public class OrderService {
         // For all OrderItems we are retrieving there skuCode List
 
         List<String> skuCodeList = order.getOrderItems().stream()
-                        .map(OrderItems::getSkuCode)
-                        .toList();
+                .map(OrderItems::getSkuCode)
+                .toList();
 
         //Checking if the product is present in the stock or not
         //Order service & Inventory service communication established using webclient
@@ -56,18 +53,16 @@ public class OrderService {
                         .block();
 
         boolean productsInStock = Arrays.stream(inventoryResponseArray)
-                .allMatch(InventoryResponse :: isInStock);
+                .allMatch(InventoryResponse::isInStock);
 
-        if(productsInStock) {
+        if (productsInStock) {
             orderRepository.save(order);
-            return "Order Placed Successfully";
-        }
-        else {
+        } else {
             throw new IllegalArgumentException("Product is not present in the stock, Please try again later");
         }
     }
 
-    private OrderItems OrderItemReqToOrderItem(OrderItemsRequest orderItemsRequest){
+    private OrderItems OrderItemReqToOrderItem(OrderItemsRequest orderItemsRequest) {
 
         OrderItems orderItems = new OrderItems();
         orderItems.setPrice(orderItemsRequest.getPrice());
